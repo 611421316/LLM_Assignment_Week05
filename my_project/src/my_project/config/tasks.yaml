@@ -1,0 +1,79 @@
+analyze_user_task:
+  description: >
+    Use the input user_id: {user_id}.
+
+    Analyze this user by searching the user and review JSON files.
+
+    CRITICAL TOOL USAGE RULE:
+    Every retrieval tool call MUST use the key "search_query".
+
+    Correct examples:
+    {"search_query": "user_id: {user_id} average_stars review_count yelping_since useful funny cool"}
+    {"search_query": "user_id: {user_id} stars text date"}
+
+    Incorrect examples:
+    {"user_id": "{user_id}"}
+    {"user_id": "{user_id}", "limit": 10}
+
+    Your job is to summarize:
+    - the user's preferences
+    - rating tendencies
+    - sentiment style
+    - writing style
+
+    Return the result in markdown format.
+  expected_output: >
+    A markdown report describing the user's profile, preferences, rating habits,
+    and review-writing behavior.
+
+analyze_item_task:
+  description: >
+    Use the input item_id: {item_id}.
+
+    Analyze this item by searching the item and review JSON files.
+
+    CRITICAL TOOL USAGE RULE:
+    Every retrieval tool call MUST use the key "search_query".
+
+    Correct examples:
+    {"search_query": "item_id: {item_id} name categories stars review_count attributes hours city state"}
+    {"search_query": "item_id: {item_id} stars text date"}
+
+    Incorrect examples:
+    {"item_id": "{item_id}"}
+    {"item_id": "{item_id}", "limit": 10}
+
+    Your job is to summarize:
+    - the item's strengths
+    - weaknesses
+    - common opinions
+    - overall customer sentiment
+    - important metadata signals
+
+    Return the result in markdown format.
+  expected_output: >
+    A markdown report describing the item's characteristics, strengths,
+    weaknesses, and common customer feedback.
+
+predict_review_task:
+  description: >
+    Based on the outputs of the user profiler and item analyst,
+    predict the final review result for this user-item pair.
+
+    Rules:
+    - Use only evidence retrieved from user_subset.json, item_subset.json, and review_subset.json
+    - Do NOT use test_review_subset.json as retrieval knowledge
+    - The predicted text must be realistic and consistent with the predicted stars
+    - The predicted stars may use 0.5 increments
+    - Return valid JSON only
+    - Do not output markdown
+    - Do not output explanation
+    - Do not add extra keys
+
+    Output MUST be valid JSON only with exactly these two fields:
+    {
+      "stars": number,
+      "text": string
+    }
+  expected_output: >
+    A valid JSON object with exactly two fields: "stars" and "text".
