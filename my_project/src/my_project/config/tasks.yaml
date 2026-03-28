@@ -22,9 +22,11 @@ analyze_user_task:
     - writing style
 
     Return the result in markdown format.
+
   expected_output: >
     A markdown report describing the user's profile, preferences, rating habits,
     and review-writing behavior.
+
 
 analyze_item_task:
   description: >
@@ -51,9 +53,11 @@ analyze_item_task:
     - important metadata signals
 
     Return the result in markdown format.
+
   expected_output: >
     A markdown report describing the item's characteristics, strengths,
     weaknesses, and common customer feedback.
+
 
 predict_review_task:
   description: >
@@ -63,17 +67,19 @@ predict_review_task:
     Rules:
     - Use only evidence retrieved from user_subset.json, item_subset.json, and review_subset.json
     - Do NOT use test_review_subset.json as retrieval knowledge
-    - The predicted text must be realistic and consistent with the predicted stars
+    - The predicted review must be realistic and consistent with the predicted stars
     - The predicted stars may use 0.5 increments
     - Return valid JSON only
     - Do not output markdown
     - Do not output explanation
     - Do not add extra keys
+    - Do not wrap the JSON in triple backticks
 
     Output MUST be valid JSON only with exactly these two fields:
     {
       "stars": number,
-      "text": string
+      "review": string
     }
+
   expected_output: >
-    A valid JSON object with exactly two fields: "stars" and "text".
+    A valid JSON object with exactly two fields: "stars" and "review".
