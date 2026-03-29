@@ -39,16 +39,200 @@ This command initializes the my_project Crew, assembling the agents and assignin
 
 This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
 
-## Understanding Your Crew
+# 📘 README – CrewAI Review Analysis System
 
-The my_project Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
+## 📌 Introduction
 
-## Support
+This project uses **CrewAI + Large Language Models (LLMs)** to analyze user and item data based on reviews.
 
-For support, questions, or feedback regarding the MyProject Crew or crewAI.
-- Visit our [documentation](https://docs.crewai.com)
-- Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
-- [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
-- [Chat with our docs](https://chatg.pt/DWjSBZn)
+The system performs:
+- **User profile analysis**
+- **Item (product/service) analysis**
+- Aggregation of insights for **recommendation and decision support**
 
-Let's create wonders together with the power and simplicity of crewAI.
+The input data is provided via JSON containing:
+- `user_id`
+- `item_id`
+
+---
+
+## 🧱 Project Structure
+
+```
+my_project/
+│
+├── src/my_project/
+│   ├── main.py        # Entry point
+│   ├── crew.py        # CrewAI pipeline definition
+│   └── ...
+│
+├── data/
+│   └── test_review_subset.json
+│
+├── .env              # API keys
+├── pyproject.toml    # Dependencies (uv)
+└── README.md
+```
+
+---
+
+## ⚙️ Setup
+
+### 1. Create virtual environment
+
+Recommended: Python 3.11
+
+```
+python3.11 -m venv .venv
+source .venv/bin/activate
+```
+
+---
+
+### 2. Install dependencies
+
+Using **uv**:
+
+```
+uv add crewai langchain langchain-community langchain-core sentence-transformers
+```
+
+Or using pip:
+
+```
+pip install crewai langchain langchain-community langchain-core sentence-transformers
+```
+
+---
+
+### 3. Configure environment variables
+
+Create a `.env` file:
+
+```
+OPENAI_API_KEY=your_key_here
+SERPER_API_KEY=your_key_here
+MODEL=groq/llama-3.3-70b-versatile
+```
+
+---
+
+## 🚀 Usage
+
+### ▶️ Run default
+
+```
+python src/my_project/main.py
+```
+
+---
+
+### ▶️ Run with command
+
+```
+python src/my_project/main.py run
+```
+
+---
+
+### 🧠 Train
+
+```
+python src/my_project/main.py train 5 output.json
+```
+
+---
+
+### 🔁 Replay
+
+```
+python src/my_project/main.py replay <task_id>
+```
+
+---
+
+### 🧪 Test
+
+```
+python src/my_project/main.py test 5 gpt-4
+```
+
+---
+
+### ⚡ Run with trigger payload
+
+```
+python src/my_project/main.py trigger '{"key":"value"}'
+```
+
+---
+
+## 📥 Input Data
+
+File:
+
+```
+data/test_review_subset.json
+```
+
+Supported formats:
+- JSON array
+- JSONL (one object per line)
+
+---
+
+## ⚙️ Workflow
+
+1. Load the first test case  
+2. Extract:
+   - `user_id`
+   - `item_id`  
+3. Pass input into CrewAI:
+
+```
+MyProject().crew().kickoff(inputs=inputs)
+```
+
+4. LLM processes:
+   - user analysis  
+   - item analysis  
+   - final aggregation  
+
+---
+
+## ⚠️ Common Issues
+
+- `ModuleNotFoundError: langchain_community` → install langchain-community  
+- `ModuleNotFoundError: sentence_transformers` → install sentence-transformers  
+- Python 3.13 issues → use Python 3.11  
+
+---
+
+## 🧠 Notes
+
+- Frameworks:
+  - CrewAI  
+  - LangChain  
+  - HuggingFace Embeddings  
+
+- Embedding model:
+  BAAI/bge-small-en-v1.5
+
+---
+
+## 📈 Future Improvements
+
+- Add recommendation system  
+- Improve prompt engineering  
+- Apply GraphRAG  
+- Deploy API (FastAPI)  
+- Add evaluation metrics  
+
+---
+
+## 👨‍💻 Author
+
+- Vinh Vo (Võ Công Vinh)  
+- Master Student – NDHU CSIE  
+- NLP / LLM / Recommendation Systems
+
