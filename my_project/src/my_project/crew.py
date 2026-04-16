@@ -48,38 +48,37 @@ user_rag_tool = JSONSearchTool(
     collection_name="v3_hf_user_data",
     config=rag_config
 )
-user_rag_tool.name = "search_user_profile_data"
-user_rag_tool.description = (
-    "Search user data. IMPORTANT: input must be "
-    '{"search_query": "user_id: <USER_ID> average_stars review_count yelping_since useful funny cool"}. '
-    "Do not use {'user_id': '...'} directly."
-)
-
 item_rag_tool = JSONSearchTool(
     json_path=item_json_path,
     collection_name="v3_hf_item_data",
     config=rag_config
 )
-item_rag_tool.name = "search_restaurant_feature_data"
-item_rag_tool.description = (
-    "Search item data. IMPORTANT: input must be "
-    '{"search_query": "item_id: <ITEM_ID> name categories stars review_count attributes hours city state"}. '
-    "Do not use {'item_id': '...'} directly."
-)
-
 review_rag_tool = JSONSearchTool(
     json_path=review_json_path,
     collection_name="v3_hf_review_data",
     config=rag_config
 )
-review_rag_tool.name = "search_historical_reviews_data"
-review_rag_tool.description = (
-    "Search review data. IMPORTANT: input must be "
-    '{"search_query": "user_id: <USER_ID> stars text date"} '
-    'or {"search_query": "item_id: <ITEM_ID> stars text date"}. '
-    "Do not use {'user_id': '...'} or {'item_id': '...'} directly."
+user_rag_tool.name = "user_search"
+item_rag_tool.name = "item_search"
+review_rag_tool.name = "review_search"
+user_rag_tool.description = (
+    'Tool name: user_search. '
+    'Use EXACTLY this tool name. '
+    'Input must be {"search_query": "user_id: <USER_ID> average_stars review_count yelping_since useful funny cool"}.'
 )
 
+item_rag_tool.description = (
+    'Tool name: item_search. '
+    'Use EXACTLY this tool name. '
+    'Input must be {"search_query": "item_id: <ITEM_ID> name categories stars review_count attributes hours city state"}.'
+)
+
+review_rag_tool.description = (
+    'Tool name: review_search. '
+    'Use EXACTLY this tool name. '
+    'Input must be {"search_query": "user_id: <USER_ID> stars text date"} '
+    'or {"search_query": "item_id: <ITEM_ID> stars text date"}.'
+)
 
 def validate_prediction(output: Any):
     raw = getattr(output, "raw", output)

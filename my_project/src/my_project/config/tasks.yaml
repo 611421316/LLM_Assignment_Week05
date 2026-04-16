@@ -37,10 +37,9 @@ analyze_item_task:
 
     IMPORTANT:
     - You MUST only use records whose item_id exactly equals {item_id}
-    - If the retrieval tool returns multiple businesses, ignore every result whose item_id does not exactly match {item_id}
+    - Ignore every result whose item_id does not exactly match {item_id}
     - Do NOT summarize other businesses
-    - Do NOT choose a business by city, category, or name similarity
-    - Your final item analysis must clearly restate:
+    - Your final answer must explicitly restate:
       - exact item_id
       - exact business name
       - exact stars
@@ -48,61 +47,36 @@ analyze_item_task:
 
     Analyze this item by searching the item and review JSON files.
 
-    CRITICAL TOOL USAGE RULE:
     Every retrieval tool call MUST use the key "search_query".
 
     Correct examples:
     {"search_query": "item_id: {item_id} name categories stars review_count attributes hours city state"}
     {"search_query": "item_id: {item_id} stars text date"}
 
-    Incorrect examples:
-    {"item_id": "{item_id}"}
-    {"item_id": "{item_id}", "limit": 10}
-
-    Return the result in markdown format.
-
   expected_output: >
-    A markdown report describing the exact target item, including:
-    - exact item_id
-    - exact business name
-    - stars
-    - review_count
-    - strengths
-    - weaknesses
-    - common customer sentiment
-
+    A markdown report for the exact requested item_id only.
 
 predict_review_task:
   description: >
     Use the outputs of analyze_user_task and analyze_item_task.
 
-    This is NOT a schema-explanation task.
-    This is NOT a data-format-description task.
-    This is NOT a question-answering task.
-
-    Your only job is to predict the most plausible Yelp-style final review
-    for this exact user-item pair using the previous task outputs.
+    IMPORTANT FOR THE MANAGER:
+    - Delegate this task only to PredictionAnalyst
+    - Use delegate_work_to_coworker, not ask_question_to_coworker
+    - Pass the full validated user summary and full validated item summary
+    - Do not shorten the context into one vague sentence
+    - Do not change the business name or item_id
 
     Required output:
-    - valid JSON only
+    - raw JSON only
     - exactly two keys: "stars" and "review"
     - no markdown
     - no explanation
     - no triple backticks
     - no extra keys
 
-    Constraints:
-    - stars must be between 0.5 and 5.0
-    - stars must use 0.5 increments
-    - review must be realistic and consistent with the predicted stars
-    - use only evidence from the previous task outputs
-    - do not discuss schema, structure, or field definitions
-
     Return exactly:
-    {
-      "stars": number,
-      "review": string
-    }
+    {"stars": number, "review": string}
 
   expected_output: >
     A valid JSON object with exactly two fields: "stars" and "review".

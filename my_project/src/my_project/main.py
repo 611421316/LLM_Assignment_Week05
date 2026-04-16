@@ -32,16 +32,15 @@ def load_first_test_case():
     if not content:
         raise ValueError(f"Empty file: {data_path}")
 
-    # JSON array
     if content.startswith("["):
         data = json.loads(content)
         if not data:
             raise ValueError(f"No test cases found in: {data_path}")
         return data[0]
 
-    # JSONL
     first_line = content.splitlines()[0].strip()
     return json.loads(first_line)
+
 
 def normalize_result(result):
     """
@@ -62,15 +61,18 @@ def normalize_result(result):
     return {"raw": str(result)}
 
 
-def run():
+def run(user_id=None, item_id=None):
     """
-    Run the crew on the first test case.
+    Run the crew on provided IDs or the first test case.
     """
-    test_case = load_first_test_case()
+    if user_id is None or item_id is None:
+        test_case = load_first_test_case()
+        user_id = test_case["user_id"]
+        item_id = test_case["item_id"]
 
     inputs = {
-        "user_id": test_case["user_id"],
-        "item_id": test_case["item_id"],
+        "user_id": user_id,
+        "item_id": item_id,
     }
 
     print("Running Crew with inputs:")
@@ -84,11 +86,6 @@ def run():
 
 
 def train():
-    """
-    Train the crew for a given number of iterations.
-    Usage:
-        python main.py train <n_iterations> <filename>
-    """
     inputs = {
         "current_year": str(datetime.now().year)
     }
@@ -108,11 +105,6 @@ def train():
 
 
 def replay():
-    """
-    Replay the crew execution from a specific task.
-    Usage:
-        python main.py replay <task_id>
-    """
     try:
         if len(sys.argv) < 3:
             raise ValueError("Usage: python main.py replay <task_id>")
@@ -124,11 +116,6 @@ def replay():
 
 
 def test():
-    """
-    Test the crew execution and return the results.
-    Usage:
-        python main.py test <n_iterations> <eval_llm>
-    """
     inputs = {
         "current_year": str(datetime.now().year)
     }
@@ -179,8 +166,6 @@ if __name__ == "__main__":
         command = sys.argv[1].lower()
 
         if command == "run":
-            # python main.py run
-            # python main.py run <user_id> <item_id>
             if len(sys.argv) == 4:
                 run(user_id=sys.argv[2], item_id=sys.argv[3])
             else:
@@ -189,7 +174,16 @@ if __name__ == "__main__":
         elif command == "trigger":
             run_with_trigger()
 
+        elif command == "train":
+            train()
+
+        elif command == "replay":
+            replay()
+
+        elif command == "test":
+            test()
+
         else:
             raise ValueError(
-                "Unknown command. Use one of: run, trigger"
+                "Unknown command. Use one of: run, trigger, train, replay, test"
             )

@@ -1,3 +1,10 @@
-**
+Action: Execute the prediction task. I need to determine the star rating and a review for "Pitchers Pub". I will leverage the provided data to make this determination.
 
-Based on the available data, Local 44 in Philadelphia’s Midtown Village is a solid, if slightly inconsistent, option for a casual meal. Located on 4th Street, the atmosphere is lively and bustling, particularly during peak hours. Patrons have reported successful experiences with their elevated pub fare and wood-fired pizzas, often praising the crispy texture and smoky flavor of the pepperoni pizza. However, there have been reports of inconsistent burger quality, with some customers describing one burger as juicy and flavorful while another as slightly dry. The establishment offers a decent cocktail menu featuring a selection of craft beers. Service is generally friendly, although potentially slow due to the restaurant's popularity. With 494 reviews, Local 44 is a well-regarded neighborhood favorite.  Considering these factors, diners should anticipate a crowded environment and exercise caution when ordering, particularly burgers, to ensure optimal quality.
+Action: Utilize the PredictionOutput schema to structure the final answer.
+
+```json
+{
+  "stars": 3.5,
+  "review": "A solid neighborhood pub with a good selection of beers and classic American fare. Service was friendly and the atmosphere was lively."
+}
+```
