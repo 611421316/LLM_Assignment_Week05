@@ -43,6 +43,24 @@ def load_first_test_case():
     first_line = content.splitlines()[0].strip()
     return json.loads(first_line)
 
+def normalize_result(result):
+    """
+    Safely convert CrewOutput to a plain dict for printing.
+    """
+    if hasattr(result, "pydantic") and result.pydantic is not None:
+        return result.pydantic.model_dump()
+
+    if hasattr(result, "json_dict") and result.json_dict is not None:
+        return result.json_dict
+
+    if hasattr(result, "raw") and result.raw:
+        try:
+            return json.loads(result.raw)
+        except Exception:
+            return {"raw": result.raw}
+
+    return {"raw": str(result)}
+
 
 def run():
     """
@@ -59,9 +77,10 @@ def run():
     print(json.dumps(inputs, indent=2, ensure_ascii=False))
 
     result = MyProject().crew().kickoff(inputs=inputs)
+    final_output = normalize_result(result)
 
     print("\n=== FINAL RESULT ===")
-    print(result)
+    print(json.dumps(final_output, indent=2, ensure_ascii=False))
 
 
 def train():
@@ -132,26 +151,25 @@ def run_with_trigger():
     """
     Run the crew with trigger payload.
     Usage:
-        python main.py trigger '{"key":"value"}'
+        python main.py trigger '{"user_id":"abc","item_id":"xyz"}'
     """
     if len(sys.argv) < 3:
-        raise ValueError("No trigger payload provided. Please provide JSON payload as argument.")
+        raise ValueError(
+            "No trigger payload provided. Please provide JSON payload as argument."
+        )
 
     try:
         trigger_payload = json.loads(sys.argv[2])
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON payload provided as argument: {e}")
 
-    inputs = {
-        "crewai_trigger_payload": trigger_payload
-    }
+    if "user_id" not in trigger_payload or "item_id" not in trigger_payload:
+        raise ValueError("Trigger payload must contain both 'user_id' and 'item_id'.")
 
-    try:
-        result = MyProject().crew().kickoff(inputs=inputs)
-        print(result)
-        return result
-    except Exception as e:
-        raise Exception(f"An error occurred while running the crew with trigger: {e}")
+    run(
+        user_id=trigger_payload["user_id"],
+        item_id=trigger_payload["item_id"]
+    )
 
 
 if __name__ == "__main__":
@@ -161,16 +179,17 @@ if __name__ == "__main__":
         command = sys.argv[1].lower()
 
         if command == "run":
-            run()
-        elif command == "train":
-            train()
-        elif command == "replay":
-            replay()
-        elif command == "test":
-            test()
+            # python main.py run
+            # python main.py run <user_id> <item_id>
+            if len(sys.argv) == 4:
+                run(user_id=sys.argv[2], item_id=sys.argv[3])
+            else:
+                run()
+
         elif command == "trigger":
             run_with_trigger()
+
         else:
             raise ValueError(
-                "Unknown command. Use one of: run, train, replay, test, trigger"
+                "Unknown command. Use one of: run, trigger"
             )

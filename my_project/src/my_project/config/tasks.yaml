@@ -2,6 +2,9 @@ analyze_user_task:
   description: >
     Use the input user_id: {user_id}.
 
+    IMPORTANT FOR THE MANAGER:
+    Assign this task to the User Preference Researcher.
+
     Analyze this user by searching the user and review JSON files.
 
     CRITICAL TOOL USAGE RULE:
@@ -21,6 +24,10 @@ analyze_user_task:
     - sentiment style
     - writing style
 
+    You should use both:
+    - user metadata evidence
+    - the user's historical review evidence
+
     Return the result in markdown format.
 
   expected_output: >
@@ -31,6 +38,9 @@ analyze_user_task:
 analyze_item_task:
   description: >
     Use the input item_id: {item_id}.
+
+    IMPORTANT FOR THE MANAGER:
+    Assign this task to the Item Researcher.
 
     Analyze this item by searching the item and review JSON files.
 
@@ -52,6 +62,10 @@ analyze_item_task:
     - overall customer sentiment
     - important metadata signals
 
+    You should use both:
+    - item metadata evidence
+    - historical review evidence for the item
+
     Return the result in markdown format.
 
   expected_output: >
@@ -61,21 +75,31 @@ analyze_item_task:
 
 predict_review_task:
   description: >
-    Based on the outputs of the user profiler and item analyst,
-    predict the final review result for this user-item pair.
+    Use the outputs of analyze_user_task and analyze_item_task.
 
-    Rules:
-    - Use only evidence retrieved from user_subset.json, item_subset.json, and review_subset.json
-    - Do NOT use test_review_subset.json as retrieval knowledge
-    - The predicted review must be realistic and consistent with the predicted stars
-    - The predicted stars may use 0.5 increments
-    - Return valid JSON only
-    - Do not output markdown
-    - Do not output explanation
-    - Do not add extra keys
-    - Do not wrap the JSON in triple backticks
+    This is NOT a schema-explanation task.
+    This is NOT a data-format-description task.
+    This is NOT a question-answering task.
 
-    Output MUST be valid JSON only with exactly these two fields:
+    Your only job is to predict the most plausible Yelp-style final review
+    for this exact user-item pair using the previous task outputs.
+
+    Required output:
+    - valid JSON only
+    - exactly two keys: "stars" and "review"
+    - no markdown
+    - no explanation
+    - no triple backticks
+    - no extra keys
+
+    Constraints:
+    - stars must be between 0.5 and 5.0
+    - stars must use 0.5 increments
+    - review must be realistic and consistent with the predicted stars
+    - use only evidence from the previous task outputs
+    - do not discuss schema, structure, or field definitions
+
+    Return exactly:
     {
       "stars": number,
       "review": string

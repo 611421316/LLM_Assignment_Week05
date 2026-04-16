@@ -5,7 +5,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai_tools import JSONSearchTool
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+from pydantic import BaseModel, Field, field_validator
 
 # Required workaround for CrewAI tools
 os.environ["OPENAI_API_KEY"] = "NA"
@@ -76,6 +77,19 @@ review_rag_tool.description = (
     "Do not use {'user_id': '...'} or {'item_id': '...'} directly."
 )
 
+class PredictionOutput(BaseModel):
+    stars: float = Field(..., ge=0.5, le=5.0)
+    review: str = Field(..., min_length=1)
+
+    @field_validator("stars")
+    @classmethod
+    def validate_half_step(cls, value: float) -> float:
+        doubled = value * 2
+        if abs(doubled - round(doubled)) > 1e-9:
+            raise ValueError("stars must use 0.5 increments")
+        return value
+
+
 
 @CrewBase
 class MyProject:
@@ -114,11 +128,18 @@ class MyProject:
             allow_delegation=False
         )
 
+    def project_manager(self) -> Agent:
+        return Agent(
+            config=self.agents_config["project_manager"],
+            verbose=True,
+            allow_delegation=True
+        )
+
     @task
     def analyze_user_task(self) -> Task:
         return Task(
             config=self.tasks_config["analyze_user_task"],
-            agent=self.user_profiler()
+            agent=self.user_profiler(),
         )
 
     @task
@@ -134,6 +155,7 @@ class MyProject:
             config=self.tasks_config["predict_review_task"],
             agent=self.prediction_modeler(),
             context=[self.analyze_user_task(), self.analyze_item_task()],
+            output_pydantic=PredictionOutput,
             output_file="report.json"
         )
 
@@ -142,6 +164,7 @@ class MyProject:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.sequential,
+            manager_agent=self.project_manager(),
+            process=Process.hierarchical,
             verbose=True
         )
