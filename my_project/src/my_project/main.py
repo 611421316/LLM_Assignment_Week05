@@ -237,11 +237,9 @@ def run_online():
     result = MyProject().crew().kickoff(inputs=inputs)
     final_output = normalize_result(result)
 
-    if isinstance(final_output, dict) and "stars" not in final_output:
-        final_output["stars"] = predicted_stars
-
     print("\n=== ONLINE PIPELINE RESULT ===")
     print(json.dumps(final_output, indent=2, ensure_ascii=False))
+    
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

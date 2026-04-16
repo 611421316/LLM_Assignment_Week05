@@ -60,23 +60,11 @@ predict_review_task:
   description: >
     Use the outputs of analyze_user_task and analyze_item_task.
 
-    IMPORTANT FOR THE MANAGER:
-    - Delegate this task only to PredictionAnalyst
-    - Use delegate_work_to_coworker, not ask_question_to_coworker
-    - Pass the full validated user summary and full validated item summary
-    - Do not shorten the context into one vague sentence
-    - Do not change the business name or item_id
-
-    Required output:
-    - raw JSON only
+    IMPORTANT:
+    - Use predicted_stars: {predicted_stars} as the main rating signal
+    - Generate a realistic review consistent with predicted_stars
+    - Return raw JSON only
     - exactly two keys: "stars" and "review"
-    - no markdown
-    - no explanation
-    - no triple backticks
-    - no extra keys
 
     Return exactly:
     {"stars": number, "review": string}
-
-  expected_output: >
-    A valid JSON object with exactly two fields: "stars" and "review".
