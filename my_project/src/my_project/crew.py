@@ -7,6 +7,9 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai_tools import JSONSearchTool
 from langchain_huggingface import HuggingFaceEmbeddings
 from pydantic import BaseModel, Field, field_validator
+import json
+from typing import Any
+import re
 
 # Required workaround for CrewAI tools
 os.environ["OPENAI_API_KEY"] = "NA"
@@ -76,6 +79,47 @@ review_rag_tool.description = (
     'or {"search_query": "item_id: <ITEM_ID> stars text date"}. '
     "Do not use {'user_id': '...'} or {'item_id': '...'} directly."
 )
+
+
+def validate_prediction(output: Any):
+    raw = getattr(output, "raw", output)
+
+    if not isinstance(raw, str):
+        raw = str(raw)
+
+    text = raw.strip()
+
+    # strip markdown fences
+    text = re.sub(r"^```json\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^```\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+
+    # extract first JSON object if extra text exists
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start:end+1]
+
+    try:
+        data = json.loads(text)
+
+        # normalize common wrong key
+        if "predicted_stars" in data and "stars" not in data:
+            data["stars"] = data.pop("predicted_stars")
+
+        # ensure exact keys only
+        allowed = {"stars", "review"}
+        data = {k: v for k, v in data.items() if k in allowed}
+
+        PredictionOutput.model_validate(data)
+        return True, data
+
+    except Exception as e:
+        return False, (
+            "Invalid final output. Return ONLY raw JSON with exactly "
+            '{"stars": number, "review": string}. '
+            f"Validation error: {e}"
+        )
 
 class PredictionOutput(BaseModel):
     stars: float = Field(..., ge=0.5, le=5.0)
@@ -153,9 +197,10 @@ class MyProject:
     def predict_review_task(self) -> Task:
         return Task(
             config=self.tasks_config["predict_review_task"],
-            agent=self.prediction_modeler(),
             context=[self.analyze_user_task(), self.analyze_item_task()],
             output_pydantic=PredictionOutput,
+            guardrail=validate_prediction,
+            guardrail_max_retries=3,
             output_file="report.json"
         )
 

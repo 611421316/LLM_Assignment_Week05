@@ -2,8 +2,10 @@ analyze_user_task:
   description: >
     Use the input user_id: {user_id}.
 
-    IMPORTANT FOR THE MANAGER:
-    Assign this task to the User Preference Researcher.
+    IMPORTANT:
+    - You MUST only use records whose user_id exactly equals {user_id}
+    - Ignore any near match or unrelated retrieval hit
+    - Your final user analysis must clearly restate the exact user_id
 
     Analyze this user by searching the user and review JSON files.
 
@@ -18,29 +20,31 @@ analyze_user_task:
     {"user_id": "{user_id}"}
     {"user_id": "{user_id}", "limit": 10}
 
-    Your job is to summarize:
-    - the user's preferences
-    - rating tendencies
-    - sentiment style
-    - writing style
-
-    You should use both:
-    - user metadata evidence
-    - the user's historical review evidence
-
     Return the result in markdown format.
 
   expected_output: >
-    A markdown report describing the user's profile, preferences, rating habits,
-    and review-writing behavior.
+    A markdown report describing the exact target user, including:
+    - exact user_id
+    - preferences
+    - rating habits
+    - sentiment style
+    - writing style
 
 
 analyze_item_task:
   description: >
     Use the input item_id: {item_id}.
 
-    IMPORTANT FOR THE MANAGER:
-    Assign this task to the Item Researcher.
+    IMPORTANT:
+    - You MUST only use records whose item_id exactly equals {item_id}
+    - If the retrieval tool returns multiple businesses, ignore every result whose item_id does not exactly match {item_id}
+    - Do NOT summarize other businesses
+    - Do NOT choose a business by city, category, or name similarity
+    - Your final item analysis must clearly restate:
+      - exact item_id
+      - exact business name
+      - exact stars
+      - exact review_count
 
     Analyze this item by searching the item and review JSON files.
 
@@ -55,22 +59,17 @@ analyze_item_task:
     {"item_id": "{item_id}"}
     {"item_id": "{item_id}", "limit": 10}
 
-    Your job is to summarize:
-    - the item's strengths
-    - weaknesses
-    - common opinions
-    - overall customer sentiment
-    - important metadata signals
-
-    You should use both:
-    - item metadata evidence
-    - historical review evidence for the item
-
     Return the result in markdown format.
 
   expected_output: >
-    A markdown report describing the item's characteristics, strengths,
-    weaknesses, and common customer feedback.
+    A markdown report describing the exact target item, including:
+    - exact item_id
+    - exact business name
+    - stars
+    - review_count
+    - strengths
+    - weaknesses
+    - common customer sentiment
 
 
 predict_review_task:
