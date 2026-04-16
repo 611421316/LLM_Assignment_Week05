@@ -158,6 +158,9 @@ class LLMEnhancedRecSys:
         print("Starting offline training...")
         print("=" * 60)
 
+        # ==================================================
+        # STEP 1. Load data + split into train / val / test
+        # ==================================================
         df = self._load_dataset(dataset_path)
 
         required_cols = {"user_id", "item_id", "stars", "text"}
@@ -169,13 +172,24 @@ class LLMEnhancedRecSys:
         df["stars"] = df["stars"].astype(float)
         df["text"] = df["text"].astype(str)
 
-        train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
+        # 80% train, 10% val, 10% test
+        train_df, temp_df = train_test_split(df, test_size=0.2, random_state=42)
+        val_df, test_df = train_test_split(temp_df, test_size=0.5, random_state=42)
 
+        print(f"Train size: {len(train_df)}")
+        print(f"Val size:   {len(val_df)}")
+        print(f"Test size:  {len(test_df)}")
+
+        # Build profiles ONLY from train set to avoid leakage
         user_profiles, item_profiles = self._build_profiles_from_train(train_df)
 
         train_df = self._attach_profiles(train_df, user_profiles, item_profiles)
         val_df = self._attach_profiles(val_df, user_profiles, item_profiles)
+        test_df = self._attach_profiles(test_df, user_profiles, item_profiles)
 
+        # ==================================================
+        # STEP 2. Train on train set, evaluate on val set
+        # ==================================================
         X_train = self._build_features(train_df, fit=True)
         y_train = train_df["stars"].values
 
@@ -185,12 +199,25 @@ class LLMEnhancedRecSys:
         self.model.fit(X_train, y_train)
 
         val_pred = self.model.predict(X_val)
-        mae = mean_absolute_error(y_val, val_pred)
-        rmse = mean_squared_error(y_val, val_pred) ** 0.5
 
-        print(f"Validation MAE:  {mae:.4f}")
-        print(f"Validation RMSE: {rmse:.4f}")
+        val_mae = mean_absolute_error(y_val, val_pred)
+        val_rmse = mean_squared_error(y_val, val_pred) ** 0.5
 
+        rounded_val_pred = [self._round_to_half(x) for x in val_pred]
+        val_rounded_accuracy = sum(
+            p == y for p, y in zip(rounded_val_pred, y_val)
+        ) / len(y_val)
+        val_within_half = sum(
+            abs(p - y) <= 0.5 for p, y in zip(rounded_val_pred, y_val)
+        ) / len(y_val)
+
+        print("\n===== VALIDATION RESULTS =====")
+        print(f"Validation MAE: {val_mae:.4f}")
+        print(f"Validation RMSE: {val_rmse:.4f}")
+        print(f"Validation Rounded Accuracy: {val_rounded_accuracy:.4f}")
+        print(f"Validation Within 0.5 star Accuracy: {val_within_half:.4f}")
+
+        # Save trained model
         os.makedirs("./registry", exist_ok=True)
         joblib.dump(
             {
@@ -204,8 +231,33 @@ class LLMEnhancedRecSys:
             self.weights_path
         )
 
+        # ==================================================
+        # STEP 3. Final evaluation on test set
+        # ==================================================
+        X_test = self._build_features(test_df, fit=False)
+        y_test = test_df["stars"].values
+
+        test_pred = self.model.predict(X_test)
+
+        test_mae = mean_absolute_error(y_test, test_pred)
+        test_rmse = mean_squared_error(y_test, test_pred) ** 0.5
+
+        rounded_test_pred = [self._round_to_half(x) for x in test_pred]
+        test_rounded_accuracy = sum(
+            p == y for p, y in zip(rounded_test_pred, y_test)
+        ) / len(y_test)
+        test_within_half = sum(
+            abs(p - y) <= 0.5 for p, y in zip(rounded_test_pred, y_test)
+        ) / len(y_test)
+
+        print("\n===== FINAL TEST RESULTS =====")
+        print(f"Test MAE: {test_mae:.4f}")
+        print(f"Test RMSE: {test_rmse:.4f}")
+        print(f"Test Rounded Accuracy: {test_rounded_accuracy:.4f}")
+        print(f"Test Within 0.5 star Accuracy: {test_within_half:.4f}")
+
         self.is_trained = True
-        print(f"Model saved to: {self.weights_path}")
+        print(f"\nModel saved to: {self.weights_path}")
 
     def load(self):
         bundle = joblib.load(self.weights_path)
