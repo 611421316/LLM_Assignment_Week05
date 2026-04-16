@@ -1,1 +1,6 @@
-The star rating is 5 and the review is "Best burger I've had in years! The staff was friendly and the food was cooked perfectly. Highly recommend!"
+```json
+{
+  "stars": 4,
+  "review": "Local 44 is a solid spot for a weekend brunch or a casual evening out. The American menu offers familiar favorites with a good execution – nothing overly fancy, but everything was tasty and cooked well. I really appreciated the full bar selection and the high review count speaks for itself; clearly, people enjoy this place. Service was friendly and attentive, though a little busy during peak brunch hours. Outdoor seating would have been a nice bonus, but the indoor atmosphere was still lively and comfortable. Definitely recommend for a relaxed meal and drinks!"
+}
+```
