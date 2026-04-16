@@ -215,45 +215,33 @@ def predict_llm():
         raise Exception(f"An error occurred while predicting: {e}")
 
 def run_online():
-    """
-    Online serving:
-    1. Load trained model
-    2. Predict stars
-    3. Run CrewAI for review generation
-    Usage:
-        python main.py run_online <user_id> <item_id>
-    """
-    try:
-        if len(sys.argv) < 4:
-            raise ValueError("Usage: python main.py run_online <user_id> <item_id>")
+    if len(sys.argv) < 4:
+        raise ValueError("Usage: python main.py run_online <user_id> <item_id>")
 
-        user_id = sys.argv[2]
-        item_id = sys.argv[3]
+    user_id = sys.argv[2]
+    item_id = sys.argv[3]
 
-        engine = LLMEnhancedRecSys()
-        engine.load()
-        predicted_stars = engine.predict(user_id, item_id)
+    engine = LLMEnhancedRecSys()
+    engine.load()
+    predicted_stars = engine.predict(user_id, item_id)
 
-        inputs = {
-            "user_id": user_id,
-            "item_id": item_id,
-            "predicted_stars": predicted_stars
-        }
+    inputs = {
+        "user_id": user_id,
+        "item_id": item_id,
+        "predicted_stars": predicted_stars
+    }
 
-        print("Running online pipeline with inputs:")
-        print(json.dumps(inputs, indent=2, ensure_ascii=False))
+    print("Running online pipeline with inputs:")
+    print(json.dumps(inputs, indent=2, ensure_ascii=False))
 
-        result = MyProject().crew().kickoff(inputs=inputs)
-        final_output = normalize_result(result)
+    result = MyProject().crew().kickoff(inputs=inputs)
+    final_output = normalize_result(result)
 
-        if isinstance(final_output, dict):
-            final_output["predicted_stars"] = predicted_stars
+    if isinstance(final_output, dict) and "stars" not in final_output:
+        final_output["stars"] = predicted_stars
 
-        print("\n=== ONLINE PIPELINE RESULT ===")
-        print(json.dumps(final_output, indent=2, ensure_ascii=False))
-
-    except Exception as e:
-        raise Exception(f"An error occurred while running online pipeline: {e}")
+    print("\n=== ONLINE PIPELINE RESULT ===")
+    print(json.dumps(final_output, indent=2, ensure_ascii=False))
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
