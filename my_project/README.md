@@ -52,3 +52,15 @@ For support, questions, or feedback regarding the MyProject Crew or crewAI.
 - [Chat with our docs](https://chatg.pt/DWjSBZn)
 
 Let's create wonders together with the power and simplicity of crewAI.
+
+```bash
+python3 -m pip install -r requirements.txt
+source .venv/bin/activate
+python3 src/my_project/main.py train_llm /Users/vcv/Documents/ndhu/LLM/assignments/Week05/my_project/src/my_project/data/train_reviews_temp.json
+
+source .venv/bin/activate
+python3 src/my_project/main.py predict_llm _BcWyKQL16ndpBdggh2kNA uBDXcXlLR9IuRV1N2m0SPQ
+
+source .venv/bin/activate
+python3 src/my_project/main.py run_online _BcWyKQL16ndpBdggh2kNA uBDXcXlLR9IuRV1N2m0SPQ
+```

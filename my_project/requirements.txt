@@ -1,0 +1,10 @@
+pandas
+scikit-learn
+scipy
+joblib
+python-dotenv
+crewai
+crewai-tools
+pydantic
+langchain-huggingface
+

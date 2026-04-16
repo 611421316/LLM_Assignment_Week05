@@ -7,6 +7,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 from my_project.crew import MyProject
+from my_project.llm_enhanced_recsys import LLMEnhancedRecSys
 
 load_dotenv()
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
@@ -159,6 +160,101 @@ def run_with_trigger():
     )
 
 
+
+def train_llm():
+    """
+    Offline training from dataset.
+    Usage:
+        python main.py train_llm <dataset_path>
+    """
+    try:
+        if len(sys.argv) < 3:
+            raise ValueError("Usage: python main.py train_llm <dataset_path>")
+
+        dataset_path = sys.argv[2]
+
+        if not os.path.exists(dataset_path):
+            raise FileNotFoundError(f"Dataset not found: {dataset_path}")
+
+        engine = LLMEnhancedRecSys()
+        engine.train_with_dataset(dataset_path)
+
+        print("\n=== OFFLINE TRAINING COMPLETED ===")
+        print(f"Dataset: {dataset_path}")
+        print(f"Saved model: {engine.weights_path}")
+
+    except Exception as e:
+        raise Exception(f"An error occurred while training the model: {e}")
+
+def predict_llm():
+    """
+    Online prediction using trained model.
+    Usage:
+        python main.py predict_llm <user_id> <item_id>
+    """
+    try:
+        if len(sys.argv) < 4:
+            raise ValueError("Usage: python main.py predict_llm <user_id> <item_id>")
+
+        user_id = sys.argv[2]
+        item_id = sys.argv[3]
+
+        engine = LLMEnhancedRecSys()
+        engine.load()
+
+        pred = engine.predict(user_id, item_id)
+
+        print("\n=== ONLINE PREDICTION RESULT ===")
+        print(json.dumps({
+            "user_id": user_id,
+            "item_id": item_id,
+            "predicted_stars": pred
+        }, indent=2, ensure_ascii=False))
+
+    except Exception as e:
+        raise Exception(f"An error occurred while predicting: {e}")
+
+def run_online():
+    """
+    Online serving:
+    1. Load trained model
+    2. Predict stars
+    3. Run CrewAI for review generation
+    Usage:
+        python main.py run_online <user_id> <item_id>
+    """
+    try:
+        if len(sys.argv) < 4:
+            raise ValueError("Usage: python main.py run_online <user_id> <item_id>")
+
+        user_id = sys.argv[2]
+        item_id = sys.argv[3]
+
+        engine = LLMEnhancedRecSys()
+        engine.load()
+        predicted_stars = engine.predict(user_id, item_id)
+
+        inputs = {
+            "user_id": user_id,
+            "item_id": item_id,
+            "predicted_stars": predicted_stars
+        }
+
+        print("Running online pipeline with inputs:")
+        print(json.dumps(inputs, indent=2, ensure_ascii=False))
+
+        result = MyProject().crew().kickoff(inputs=inputs)
+        final_output = normalize_result(result)
+
+        if isinstance(final_output, dict):
+            final_output["predicted_stars"] = predicted_stars
+
+        print("\n=== ONLINE PIPELINE RESULT ===")
+        print(json.dumps(final_output, indent=2, ensure_ascii=False))
+
+    except Exception as e:
+        raise Exception(f"An error occurred while running online pipeline: {e}")
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         run()
@@ -183,7 +279,16 @@ if __name__ == "__main__":
         elif command == "test":
             test()
 
+        elif command == "train_llm":
+            train_llm()        # offline training
+
+        elif command == "predict_llm":
+            predict_llm()      # online ML prediction
+
+        elif command == "run_online":
+            run_online()       # online ML + CrewAI
+
         else:
             raise ValueError(
-                "Unknown command. Use one of: run, trigger, train, replay, test"
+                "Unknown command. Use one of: run, trigger, train, replay, test, train_llm, predict_llm, run_online"
             )
